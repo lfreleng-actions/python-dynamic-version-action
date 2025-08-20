@@ -38,10 +38,14 @@ runs:
     - id: parse
       name: 'Check for dynamic project versioning'
       shell: bash
+      # yamllint disable rule:line-length
       run: |
         # Check for dynamic project versioning
-        if (grep -q 'dynamic = \["version"\]' \
-          ${{ inputs.path_prefix }}/pyproject.toml); then
+
+        # See: https://regex101.com/r/XneQ1u/1
+        if awk '/^\[project\]/ {in_project=1; next} /^\[/ {in_project=0} in_project' \
+          "${{ inputs.path_prefix }}/pyproject.toml" \
+          | grep -Eq "^[[:space:]]*dynamic[[:space:]]*=[[:space:]]*\[[^]]*['\"]version['\"][^]]*\]"; then
           echo 'Dynamic versioning configured ✅'
           echo "dynamic_version=true" >> "$GITHUB_ENV"
           echo "dynamic_version=true" >> "$GITHUB_OUTPUT"
