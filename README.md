@@ -33,3 +33,13 @@ Checks dynamic versioning setup in the pyproject.toml file.
 | dynamic_version | Set true when dynamic versioning enabled |
 
 <!-- markdownlint-enable MD013 -->
+
+## Implementation Details
+
+Uses the regular expression:
+
+```console
+^[[:space:]]*dynamic[[:space:]]*=[[:space:]]*\[[^]]*['\"]version['\"][^]]*\]
+```
+
+See: <https://regex101.com/r/XneQ1u/1>
