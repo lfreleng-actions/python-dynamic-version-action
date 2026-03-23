@@ -49,10 +49,10 @@ jobs:
         run: |
           # Validate Action Output
           if [ "${{ steps.testing.outputs.dynamic_version }}" \
-            != 'false' ]; then
+            != 'true' ]; then
             echo 'Error: unexpected return value for dynamic_version ❌'
             echo "Returned: ${{ steps.testing.outputs.dynamic_version }}"
-            echo 'Expected: false'
+            echo 'Expected: true'
             exit 1
           else
             echo 'Test passed ✅'
