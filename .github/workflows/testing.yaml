@@ -87,10 +87,14 @@ jobs:
 
       - name: "Validate action: ${{ github.repository }}"
         shell: bash
+        env:
+          DYNAMIC_VERSION: ${{ steps.testing.outputs.dynamic_version }}
+          DYNAMIC_PROVIDER: ${{ steps.testing.outputs.dynamic_provider }}
+          DYNAMIC_SOURCE: ${{ steps.testing.outputs.source }}
         run: |
-          dynamic='${{ steps.testing.outputs.dynamic_version }}'
-          provider='${{ steps.testing.outputs.dynamic_provider }}'
-          source='${{ steps.testing.outputs.source }}'
+          dynamic="$DYNAMIC_VERSION"
+          provider="$DYNAMIC_PROVIDER"
+          source="$DYNAMIC_SOURCE"
           if [ "$dynamic" != 'true' ]; then
             echo 'Error: expected dynamic_version=true ❌'
             echo "Returned: $dynamic"
