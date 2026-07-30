@@ -36,13 +36,13 @@ jobs:
     steps:
       - name: 'Checkout repository'
         # yamllint disable-line rule:line-length
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
       - name: 'Setup Python'
         # yamllint disable-line rule:line-length
-        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.11'
 
@@ -67,13 +67,13 @@ jobs:
     steps:
       - name: 'Checkout repository'
         # yamllint disable-line rule:line-length
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
       - name: 'Checkout sample project repository'
         # yamllint disable-line rule:line-length
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           repository: 'lfreleng-actions/test-python-project'
@@ -87,10 +87,14 @@ jobs:
 
       - name: "Validate action: ${{ github.repository }}"
         shell: bash
+        env:
+          DYNAMIC_VERSION: ${{ steps.testing.outputs.dynamic_version }}
+          DYNAMIC_PROVIDER: ${{ steps.testing.outputs.dynamic_provider }}
+          DYNAMIC_SOURCE: ${{ steps.testing.outputs.source }}
         run: |
-          dynamic='${{ steps.testing.outputs.dynamic_version }}'
-          provider='${{ steps.testing.outputs.dynamic_provider }}'
-          source='${{ steps.testing.outputs.source }}'
+          dynamic="$DYNAMIC_VERSION"
+          provider="$DYNAMIC_PROVIDER"
+          source="$DYNAMIC_SOURCE"
           if [ "$dynamic" != 'true' ]; then
             echo 'Error: expected dynamic_version=true ❌'
             echo "Returned: $dynamic"
