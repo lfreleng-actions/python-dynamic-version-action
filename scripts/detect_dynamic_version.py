@@ -92,7 +92,8 @@ def detect_from_pyproject(path: Path) -> str:
 
     project = data.get("project") or {}
     dynamic_fields = project.get("dynamic") or []
-    requires = data.get("build-system", {}).get("requires", []) or []
+    build_system = data.get("build-system") or {}
+    requires = build_system.get("requires") or []
     requirement_names = {_requirement_name(str(r)) for r in requires}
     requirement_names.discard("")
 
@@ -186,6 +187,55 @@ def _setup_requires_provider(value: ast.AST) -> str:
     return ""
 
 
+def _is_versioneer_call(node: ast.AST) -> bool:
+    """Return True for ``versioneer.get_version()`` / ``get_cmdclass()``."""
+    if not isinstance(node, ast.Call):
+        return False
+    func = node.func
+    return (
+        isinstance(func, ast.Attribute)
+        and isinstance(func.value, ast.Name)
+        and func.value.id == "versioneer"
+        and func.attr in {"get_version", "get_cmdclass"}
+    )
+
+
+def _pbr_kwarg(value: ast.AST) -> tuple[str, bool]:
+    """``pbr=True`` clinches pbr."""
+    if isinstance(value, ast.Constant) and value.value is True:
+        return "pbr", True
+    return "", False
+
+
+def _use_scm_version_kwarg(value: ast.AST) -> tuple[str, bool]:
+    """Any non-False, non-None value indicates SCM in use."""
+    if isinstance(value, ast.Constant) and value.value in (False, None):
+        return "", False
+    return "setuptools-scm", False
+
+
+def _setup_requires_kwarg(value: ast.AST) -> tuple[str, bool]:
+    """Inspect ``setup_requires=[...]`` entries for known providers."""
+    return _setup_requires_provider(value), False
+
+
+def _version_kwarg(value: ast.AST) -> tuple[str, bool]:
+    """``version=versioneer.get_version()`` clinches versioneer."""
+    if _is_versioneer_call(value):
+        return "versioneer", True
+    return "", False
+
+
+# setup() keyword -> handler returning (provider, definitive). A
+# definitive provider wins immediately; others accumulate first-hit.
+_SETUP_KEYWORD_HANDLERS = {
+    "pbr": _pbr_kwarg,
+    "use_scm_version": _use_scm_version_kwarg,
+    "setup_requires": _setup_requires_kwarg,
+    "version": _version_kwarg,
+}
+
+
 def _detect_from_setup_py_ast(tree: ast.AST) -> str:
     """AST-based provider detection for a parsed setup.py module."""
     setup_provider = ""
@@ -193,46 +243,20 @@ def _detect_from_setup_py_ast(tree: ast.AST) -> str:
         if not isinstance(node, ast.Call) or not _is_setup_call(node):
             continue
         for keyword in node.keywords:
-            if keyword.arg == "pbr":
-                val = keyword.value
-                if isinstance(val, ast.Constant) and val.value is True:
-                    return "pbr"
-            elif keyword.arg == "use_scm_version":
-                # Any non-False, non-None value indicates SCM in use.
-                val = keyword.value
-                if isinstance(val, ast.Constant) and val.value in (False, None):
-                    continue
-                setup_provider = setup_provider or "setuptools-scm"
-            elif keyword.arg == "setup_requires":
-                provider = _setup_requires_provider(keyword.value)
-                if provider:
-                    setup_provider = setup_provider or provider
-            elif keyword.arg == "version":
-                # ``version=versioneer.get_version()`` clinches versioneer.
-                val = keyword.value
-                if isinstance(val, ast.Call):
-                    func = val.func
-                    if (
-                        isinstance(func, ast.Attribute)
-                        and isinstance(func.value, ast.Name)
-                        and func.value.id == "versioneer"
-                        and func.attr in {"get_version", "get_cmdclass"}
-                    ):
-                        return "versioneer"
+            handler = _SETUP_KEYWORD_HANDLERS.get(keyword.arg or "")
+            if handler is None:
+                continue
+            provider, definitive = handler(keyword.value)
+            if definitive:
+                return provider
+            if provider:
+                setup_provider = setup_provider or provider
     if setup_provider:
         return setup_provider
 
     # Module-level versioneer.get_version() / get_cmdclass() calls.
     for node in ast.walk(tree):
-        if not isinstance(node, ast.Call):
-            continue
-        func = node.func
-        if (
-            isinstance(func, ast.Attribute)
-            and isinstance(func.value, ast.Name)
-            and func.value.id == "versioneer"
-            and func.attr in {"get_version", "get_cmdclass"}
-        ):
+        if _is_versioneer_call(node):
             return "versioneer"
     return ""
 
