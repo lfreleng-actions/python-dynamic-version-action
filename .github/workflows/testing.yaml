@@ -81,7 +81,7 @@ jobs:
 
       - name: "Run action: ${{ github.repository }}"
         id: testing
-        uses: ./
+        uses: $/
         with:
           path_prefix: 'test-python-project'
 
