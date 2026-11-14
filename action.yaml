@@ -46,12 +46,23 @@ runs:
           exit 1
         fi
 
+    # Provision the interpreter rather than trusting the caller's PATH;
+    # update-environment: false leaves the caller's environment alone.
+    - name: 'Setup Python'
+      id: setup-python
+      # yamllint disable-line rule:line-length
+      uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+      with:
+        python-version: '3.11'
+        update-environment: false
+
     - name: 'Detect dynamic versioning'
       id: detect
       shell: bash
       env:
         INPUT_PATH_PREFIX: ${{ inputs.path_prefix }}
+        PYTHON: ${{ steps.setup-python.outputs.python-path }}
       run: |
         # Detection is delegated to the bundled Python helper which
         # recognises pyproject.toml, setup.cfg, and setup.py signals.
-        python3 "$GITHUB_ACTION_PATH/scripts/detect_dynamic_version.py"
+        "$PYTHON" -I "$GITHUB_ACTION_PATH/scripts/detect_dynamic_version.py"
