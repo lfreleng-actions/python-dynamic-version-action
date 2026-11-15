@@ -65,9 +65,9 @@ layouts:
 
 The action delegates detection to `scripts/detect_dynamic_version.py`,
 a small Python helper bundled with the action. The helper uses the
-standard library's `tomllib` (Python 3.11+) / `tomli` (3.10 fallback)
-for `pyproject.toml` and `configparser` for `setup.cfg`, and falls back
-to regex for `setup.py`. The full unit-test suite lives under `tests/`.
+standard library's `tomllib` for `pyproject.toml` and `configparser`
+for `setup.cfg`, and falls back to regex for `setup.py`. The full
+unit-test suite lives under `tests/`.
 
 The action provisions its own Python 3.11 interpreter with
 `actions/setup-python` (`update-environment: false`, so the caller's
