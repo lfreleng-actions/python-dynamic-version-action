@@ -4,7 +4,7 @@
 
 ci:
   # basedpyright's hook environment measures 284 MiB (bundled Node.js
-  # 200 MiB, basedpyright 73 MiB, plus pytest and tomli), over
+  # 200 MiB, basedpyright 73 MiB, plus pytest), over
   # pre-commit.ci's 250 MiB per-hook limit, so it cannot run there.
   # No workflow in this repository runs it either: it is enforced
   # developer-side only, by the local hook and the editor.
@@ -135,9 +135,8 @@ repos:
         always_run: true
         args: [--warnings, scripts, tests]
         # Third-party imports in the scanned code, installed so they
-        # resolve genuinely: pytest (tests) and tomli (the script's
-        # Python 3.10 fallback for tomllib). Both ship inline types.
-        additional_dependencies: ["pytest", "tomli"]
+        # resolve genuinely: pytest (tests). It ships inline types.
+        additional_dependencies: ["pytest"]
 
   - repo: https://github.com/python-jsonschema/check-jsonschema
     rev: 39478bf2c099a58683d3f1aedf675105318b078d  # frozen: 0.39.0
