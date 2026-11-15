@@ -17,8 +17,14 @@
 # point: adopting more becomes a deliberate, reviewed edit to this file
 # rather than a side effect of a version bump.
 #
-# `line-length` and `target-version` are intentionally left unset so
-# ruff's own defaults continue to apply unchanged.
+# `line-length` is intentionally left unset so ruff's own default
+# continues to apply unchanged.
+#
+# `target-version` is pinned to the organisation's minimum Python.  Left
+# unset, ruff can resolve an older target, under which `tomllib` is not
+# standard library and the import sorter misfiles it.
+
+target-version = "py311"
 
 [lint]
 # The de facto standard across this organisation: present as a superset

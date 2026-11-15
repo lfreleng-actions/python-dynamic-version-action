@@ -38,13 +38,8 @@ import os
 import re
 import sys
 import tokenize
+import tomllib
 from pathlib import Path
-
-try:  # pragma: no cover - exercised on Python >= 3.11
-    import tomllib
-except ModuleNotFoundError:  # pragma: no cover - Python 3.10
-    import tomli as tomllib  # type: ignore[import-not-found,no-redef]
-
 
 _PBR_IN_SETUP_REQUIRES = re.compile(
     r"setup_requires\s*=\s*\[[^\]]*['\"]pbr['\"]",
